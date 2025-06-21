@@ -11,7 +11,7 @@
     ],
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "uname -a",
-    "postStartCommand": "service autocommit start",
+    "postStartCommand": "",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
