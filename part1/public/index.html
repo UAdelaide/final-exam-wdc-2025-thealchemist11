@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>!!! DOG OF THE DAY !!!</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        @keyframes rainbow {
+            0%{background-position:0% 82%}
+            50%{background-position:100% 19%}
+            100%{background-position:0% 82%}
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        body {
+            background: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
+            background-size: 1800% 1800%;
+            animation: rainbow 10s ease infinite;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+            color: yellow;
+            text-align: center;
+        }
+        .container {
+            position: relative;
+            width: 80vw;
+            height: 80vh;
+            margin: auto;
+            border: 10px dotted magenta;
+        }
+        h1 {
+            font-size: 5rem;
+            animation: blink 0.5s linear infinite;
+        }
+        .dog-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.3);
+            padding: 5px;
+            font-size: 0.7rem;
+            color: #adff2f;
+        }
+        img {
+            max-width: 250px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="container">
+        <h1>Dog Of The Day!</h1>
+        
+        <div class="dog-card">
+            <img :src="dogImage" />
+        </div>
+
+        <div class="dog-info">
+            <span>Name: BARKOLOMEW</span><br>
+            <span>Size: 0.00107991 NAUTICAL MILES</span><br>
+            <span>Owner: A MYSTERY</span>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue
+
+        createApp({
+            setup() {
+                const dogImage = ref('https://placehold.co/400x300?text=Loading...');
+
+                const fetchDog = async () => {
+                    try {
+                        const response = await fetch('https://dog.ceo/api/breeds/image/random');
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            dogImage.value = data.message;
+                        }
+                    } catch (error) {
+                        console.error("Couldn't fetch doggo.");
+                    }
+                };
+
+                onMounted(() => {
+                    fetchDog();
+                });
+
+                return {
+                    dogImage
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

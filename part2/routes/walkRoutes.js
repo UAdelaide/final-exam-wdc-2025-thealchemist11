@@ -2,7 +2,28 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models/db');
 
-// GET all walk requests (for walkers to view)
+// GET all dogs for the currently logged-in owner
+router.get('/mydogs', async (req, res) => {
+  // Make sure a user is logged in
+  if (!req.session.user || req.session.user.role !== 'owner') {
+    return res.status(401).json({ error: 'Unauthorized. Please log in as an owner.' });
+  }
+
+  const ownerId = req.session.user.id;
+
+  try {
+    const [dogs] = await db.query(`
+      SELECT dog_id, name FROM Dogs WHERE owner_id = ?
+    `, [ownerId]);
+    res.json(dogs);
+  } catch (error) {
+    console.error('SQL Error:', error);
+    res.status(500).json({ error: 'Failed to fetch your dogs' });
+  }
+});
+
+
+// GET all open walk requests (for walkers to view)
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`

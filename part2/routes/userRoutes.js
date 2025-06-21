@@ -35,7 +35,7 @@ router.get('/me', (req, res) => {
   res.json(req.session.user);
 });
 
-// POST login (dummy version)
+// POST login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -48,11 +48,30 @@ router.post('/login', async (req, res) => {
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    
+    // Create the session for the user
+    const user = rows[0];
+    req.session.user = {
+      id: user.user_id,
+      username: user.username,
+      role: user.role
+    };
 
-    res.json({ message: 'Login successful', user: rows[0] });
+    res.json({ message: 'Login successful', user: user });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
   }
+});
+
+// POST logout
+router.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to log out.' });
+    }
+    res.clearCookie('connect.sid'); 
+    res.json({ message: 'Logout successful' });
+  });
 });
 
 module.exports = router;

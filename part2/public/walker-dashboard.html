@@ -9,13 +9,14 @@
 </head>
 <body class="bg-light">
   <div id="app" class="container py-4">
-    <h1 class="mb-4 text-success">Walker Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 text-success">Walker Dashboard</h1>
+        <button @click="logout" class="btn btn-danger">Logout</button>
+    </div>
 
-    <!-- Alert messages -->
     <div v-if="message" class="alert alert-info">{{ message }}</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <!-- Walk requests list -->
     <div v-if="walks.length > 0" class="row">
       <div class="col-md-6 mb-4" v-for="walk in walks" :key="walk.request_id">
         <div class="card">
@@ -43,7 +44,20 @@
         const walks = ref([]);
         const message = ref('');
         const error = ref('');
-        const user = 3;
+        const currentUser = ref(null); // State to hold the logged-in user
+
+        // Gets the current user from the session
+        async function getCurrentUser() {
+          try {
+            const res = await fetch('/api/users/me');
+            if (!res.ok) {
+              throw new Error('Could not fetch user details. Please log in again.');
+            }
+            currentUser.value = await res.json();
+          } catch (err) {
+            error.value = err.message;
+          }
+        }
 
         async function loadWalkRequests() {
           try {
@@ -56,11 +70,17 @@
         }
 
         async function applyToWalk(requestId) {
+          // Check if the user data has been loaded
+          if (!currentUser.value) {
+            error.value = "Cannot apply, user session not found.";
+            return;
+          }
           try {
             const res = await fetch(`/api/walks/${requestId}/apply`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: user })
+              // Use the dynamic walker_id from the current user
+              body: JSON.stringify({ walker_id: currentUser.value.id })
             });
             const result = await res.json();
 
@@ -74,15 +94,28 @@
           }
         }
 
+        async function logout() {
+          try {
+            const res = await fetch('/api/users/logout', { method: 'POST' });
+            if (!res.ok) throw new Error('Logout failed');
+            window.location.href = '/'; // Redirect to the login page
+          } catch (err) {
+            error.value = 'Logout failed. Please try again.';
+            console.error(err);
+          }
+        }
+
         onMounted(() => {
           loadWalkRequests();
+          getCurrentUser(); // Call the new function when the page loads
         });
 
         return {
           walks,
           message,
           error,
-          applyToWalk
+          applyToWalk,
+          logout
         };
       }
     }).mount('#app');
